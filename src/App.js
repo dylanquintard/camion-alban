@@ -351,21 +351,25 @@ function AppRoutes() {
           <Route
             path="/admin/menu"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <Products />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute enabled={tenantFeatures.isMenuEnabled} fallbackTo="/admin">
+                <AdminRoute>
+                  <Dashboard>
+                    <Products />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
             path="/admin/ingredients"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <Ingredients />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute enabled={tenantFeatures.isMenuEnabled} fallbackTo="/admin">
+                <AdminRoute>
+                  <Dashboard>
+                    <Ingredients />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
@@ -375,21 +379,25 @@ function AppRoutes() {
           <Route
             path="/admin/timeslots"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <TimeslotsAdmin />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute enabled={tenantFeatures.isSchedulesEnabled} fallbackTo="/admin">
+                <AdminRoute>
+                  <Dashboard>
+                    <TimeslotsAdmin />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
             path="/admin/gallery"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <GalleryTabsAdmin />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute enabled={tenantFeatures.isGalleryEnabled} fallbackTo="/admin">
+                <AdminRoute>
+                  <Dashboard>
+                    <GalleryTabsAdmin />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
@@ -430,41 +438,49 @@ function AppRoutes() {
           <Route
             path="/admin/blog"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <BlogAdmin />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute enabled={tenantFeatures.isBlogEnabled} fallbackTo="/admin">
+                <AdminRoute>
+                  <Dashboard>
+                    <BlogAdmin />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
             path="/admin/faq"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <FaqAdmin />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute enabled={tenantFeatures.isFaqEnabled} fallbackTo="/admin">
+                <AdminRoute>
+                  <Dashboard>
+                    <FaqAdmin />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
             path="/admin/site-info"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <SiteInfoAdmin />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute enabled={tenantFeatures.isSiteInfoEnabled} fallbackTo="/admin">
+                <AdminRoute>
+                  <Dashboard>
+                    <SiteInfoAdmin />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
             path="/admin/editproduct/:id"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <EditProduct />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute enabled={tenantFeatures.isMenuEnabled} fallbackTo="/admin">
+                <AdminRoute>
+                  <Dashboard>
+                    <EditProduct />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route path="*" element={<CatchAllRoute />} />
