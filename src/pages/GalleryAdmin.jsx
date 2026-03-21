@@ -10,6 +10,7 @@ import {
 } from "../api/gallery.api";
 import GalleryAdminEditor from "../components/gallery/GalleryAdminEditor";
 import { StatusToggle } from "../components/ui/AdminActions";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 
 const HERO_IMAGE_LIMIT = 5;
 const MIN_HOME_GALLERY_IMAGE_WIDTH = 1920;
@@ -158,7 +159,7 @@ export default function GalleryAdmin() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!token || user?.role !== "ADMIN") return;
+    if (!token || !isTenantAdminPanelUser(user)) return;
     fetchImages();
   }, [authLoading, token, user, fetchImages]);
 
@@ -387,7 +388,7 @@ export default function GalleryAdmin() {
   };
 
   if (authLoading) return <p>{tr("Chargement...", "Loading...")}</p>;
-  if (!token || user?.role !== "ADMIN") {
+  if (!token || !isTenantAdminPanelUser(user)) {
     return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
   }
 

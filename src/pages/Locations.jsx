@@ -9,6 +9,7 @@ import {
   updateLocation,
 } from "../api/location.api";
 import { ActionIconButton, DeleteIcon, EditIcon, StatusToggle } from "../components/ui/AdminActions";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 import { getLocationDisplayName } from "../utils/location";
 
 const COUNTRY_OPTIONS = ["France", "Belgique", "Luxembourg", "Allemagne"];
@@ -152,7 +153,7 @@ export default function Locations() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!token || user?.role !== "ADMIN") return;
+    if (!token || !isTenantAdminPanelUser(user)) return;
     fetchLocations();
   }, [authLoading, token, user, fetchLocations]);
 
@@ -270,7 +271,7 @@ export default function Locations() {
   };
 
   if (authLoading) return <p>{tr("Chargement...", "Loading...")}</p>;
-  if (!token || user?.role !== "ADMIN") return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
+  if (!token || !isTenantAdminPanelUser(user)) return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
 
   return (
     <div className="space-y-6">

@@ -9,6 +9,11 @@ const BUILD_DIR = path.join(__dirname, "build");
 const INDEX_FILE = path.join(BUILD_DIR, "index.html");
 const SEO_CACHE_TTL_MS = Number(process.env.SEO_CACHE_TTL_MS || 300000);
 const SEO_FETCH_TIMEOUT_MS = Number(process.env.SEO_FETCH_TIMEOUT_MS || 6000);
+const TENANT_SLUG = String(
+  process.env.TENANT_SLUG || process.env.VITE_TENANT_SLUG || ""
+)
+  .trim()
+  .toLowerCase();
 
 const FIXED_CITY_CATALOG = [
   { slug: "thionville", label: "Thionville" },
@@ -219,9 +224,6 @@ function buildRobotsSitemapUrl(req) {
   const explicit = normalizeAbsoluteHttpUrl(process.env.SEO_ROBOTS_SITEMAP_URL || "");
   if (explicit) return explicit;
 
-  const backendOrigin = buildBackendOriginUrl();
-  if (backendOrigin) return `${backendOrigin}/sitemap.xml`;
-
   const canonicalBase = normalizeBaseUrl(getCanonicalBaseUrl(req));
   if (canonicalBase) return `${canonicalBase}/sitemap.xml`;
   return "/sitemap.xml";
@@ -412,7 +414,10 @@ async function fetchJsonWithTimeout(url) {
     const response = await fetch(url, {
       method: "GET",
       signal: controller.signal,
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        ...(TENANT_SLUG ? { "x-tenant-slug": TENANT_SLUG } : {}),
+      },
     });
 
     if (!response.ok) {
@@ -435,7 +440,10 @@ async function fetchTextWithTimeout(url, acceptHeader = "text/plain") {
     const response = await fetch(url, {
       method: "GET",
       signal: controller.signal,
-      headers: { Accept: acceptHeader },
+      headers: {
+        Accept: acceptHeader,
+        ...(TENANT_SLUG ? { "x-tenant-slug": TENANT_SLUG } : {}),
+      },
     });
 
     if (!response.ok) {
@@ -605,16 +613,6 @@ function buildLocalSitemapUrls(req, cache) {
     .map((pathname) => `${canonicalBase}${pathname === "/" ? "" : pathname}`);
 
   return urls.map((url) => normalizeAbsoluteHttpUrl(url)).filter(Boolean);
-}
-
-function buildBackendSitemapCandidates() {
-  const backendOrigin = buildBackendOriginUrl();
-  const backendApiBase = buildBackendApiBaseUrl();
-  const candidates = [
-    backendOrigin ? `${backendOrigin}/sitemap.xml` : "",
-    backendApiBase ? `${backendApiBase}/sitemap.xml` : "",
-  ].filter(Boolean);
-  return [...new Set(candidates)];
 }
 
 function buildSeoMeta(pathname, cache) {
@@ -962,24 +960,6 @@ app.get("/healthz", (_req, res) => {
 });
 
 app.get("/sitemap.xml", async (req, res) => {
-  const backendCandidates = buildBackendSitemapCandidates();
-  const backendLocs = [];
-
-  for (const sitemapUrl of backendCandidates) {
-    try {
-      const xmlPayload = await fetchTextWithTimeout(
-        sitemapUrl,
-        "application/xml, text/xml;q=0.9, text/plain;q=0.8"
-      );
-      const locs = extractSitemapLocs(xmlPayload).map((entry) => normalizeAbsoluteHttpUrl(entry)).filter(Boolean);
-      if (locs.length > 0) {
-        backendLocs.push(...locs);
-      }
-    } catch (_error) {
-      // Keep trying other sitemap candidates and local fallback.
-    }
-  }
-
   let localLocs = [];
   try {
     const cache = await refreshSeoCacheIfNeeded({ force: true });
@@ -988,18 +968,11 @@ app.get("/sitemap.xml", async (req, res) => {
     localLocs = [];
   }
 
-  const mergedLocs = [...new Set([...backendLocs, ...localLocs])];
-  if (mergedLocs.length === 0) {
+  if (localLocs.length === 0) {
     return res.status(503).type("text/plain; charset=utf-8").send("Sitemap unavailable");
   }
 
-  const sitemapXml = buildSitemapXml(mergedLocs);
-  const sourceLabel =
-    backendLocs.length > 0 && localLocs.length > 0
-      ? "backend+local"
-      : backendLocs.length > 0
-        ? "backend"
-        : "local";
+  const sitemapXml = buildSitemapXml(localLocs);
 
   return res
     .status(200)
@@ -1007,7 +980,7 @@ app.get("/sitemap.xml", async (req, res) => {
     .set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
     .set("Pragma", "no-cache")
     .set("Expires", "0")
-    .set("X-Sitemap-Source", sourceLabel)
+    .set("X-Sitemap-Source", "local")
     .send(sitemapXml);
 });
 

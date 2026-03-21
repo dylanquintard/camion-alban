@@ -13,6 +13,7 @@ import { getCategories } from "../api/category.api";
 import { ActionIconButton, CheckIcon, DeleteIcon, EditIcon } from "../components/ui/AdminActions";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 
 function sortCategories(list) {
   return [...(Array.isArray(list) ? list : [])].sort((a, b) => {
@@ -86,7 +87,7 @@ export default function EditProduct() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user || user.role !== "ADMIN") return;
+    if (!isTenantAdminPanelUser(user)) return;
 
     setLoading(true);
     fetchData()
@@ -387,7 +388,7 @@ export default function EditProduct() {
   };
 
   if (authLoading || loading) return <p>{tr("Chargement...", "Loading...")}</p>;
-  if (!user || user.role !== "ADMIN") {
+  if (!isTenantAdminPanelUser(user)) {
     return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
   }
   if (!product) return <p>{tr("Produit introuvable", "Product not found")}</p>;

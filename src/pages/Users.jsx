@@ -4,6 +4,7 @@ import { deleteUser, getAllUsers, updateUserRole } from "../api/admin.api";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { ActionIconButton, DeleteIcon } from "../components/ui/AdminActions";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 import { splitPersonName } from "../utils/personName";
 
 const USERS_PER_PAGE = 10;
@@ -39,7 +40,7 @@ export default function Users() {
       return;
     }
 
-    if (user.role !== "ADMIN") {
+    if (!isTenantAdminPanelUser(user)) {
       setMessage(tr("Accès refusé : administrateur uniquement", "Access denied: admin only"));
       return;
     }

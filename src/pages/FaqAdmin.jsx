@@ -8,6 +8,7 @@ import {
 } from "../api/faq.api";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 
 function createDraftFaq(path, nextSortOrder) {
   return {
@@ -171,7 +172,7 @@ export default function FaqAdmin() {
     };
 
   useEffect(() => {
-    if (authLoading || !token || user?.role !== "ADMIN") return;
+    if (authLoading || !token || !isTenantAdminPanelUser(user)) return;
 
     let active = true;
 
@@ -211,7 +212,7 @@ export default function FaqAdmin() {
   }, [authLoading, token, tr, user]);
 
   useEffect(() => {
-    if (authLoading || !token || user?.role !== "ADMIN" || !selectedPath) return;
+    if (authLoading || !token || !isTenantAdminPanelUser(user) || !selectedPath) return;
 
     let active = true;
 
@@ -356,7 +357,7 @@ export default function FaqAdmin() {
     return <p>{tr("Chargement...", "Loading...")}</p>;
   }
 
-  if (!token || user?.role !== "ADMIN") {
+  if (!token || !isTenantAdminPanelUser(user)) {
     return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
   }
 

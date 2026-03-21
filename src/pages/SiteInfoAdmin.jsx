@@ -10,6 +10,7 @@ import { getAllProducts } from "../api/admin.api";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useSiteSettings } from "../context/SiteSettingsContext";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 import { mergeSiteSettings } from "../site/siteSettings";
 
 function createFormFromSettings(settings) {
@@ -299,7 +300,7 @@ export default function SiteInfoAdmin() {
   const sectionRefs = useRef({});
 
   useEffect(() => {
-    if (authLoading || !token || user?.role !== "ADMIN") return;
+    if (authLoading || !token || !isTenantAdminPanelUser(user)) return;
 
     let active = true;
     async function loadAdminSettings() {
@@ -331,7 +332,7 @@ export default function SiteInfoAdmin() {
   }, [authLoading, token, tr, user]);
 
   useEffect(() => {
-    if (authLoading || !token || user?.role !== "ADMIN") return;
+    if (authLoading || !token || !isTenantAdminPanelUser(user)) return;
 
     let active = true;
     async function loadProducts() {
@@ -846,7 +847,7 @@ export default function SiteInfoAdmin() {
     return <p>{tr("Chargement...", "Loading...")}</p>;
   }
 
-  if (!token || user?.role !== "ADMIN") {
+  if (!token || !isTenantAdminPanelUser(user)) {
     return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
   }
 

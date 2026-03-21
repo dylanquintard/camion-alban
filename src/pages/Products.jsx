@@ -26,6 +26,7 @@ import {
 } from "../components/ui/AdminActions";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 
 const KIND = {
   MENU: "PRODUCT",
@@ -308,7 +309,7 @@ export default function Products() {
   }, [token]);
 
   useEffect(() => {
-    if (authLoading || !token || user?.role !== "ADMIN") return;
+    if (authLoading || !token || !isTenantAdminPanelUser(user)) return;
 
     setLoading(true);
     fetchAll()
@@ -594,7 +595,7 @@ export default function Products() {
   }, [activePanel, selectedIngredientCategoryId]);
 
   if (authLoading || loading) return <p>{tr("Chargement...", "Loading...")}</p>;
-  if (!token || user?.role !== "ADMIN") {
+  if (!token || !isTenantAdminPanelUser(user)) {
     return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
   }
 

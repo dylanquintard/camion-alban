@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { getPrintJobsAdmin, reprintJobAdmin } from "../api/admin.api";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 import { getOrderNote } from "../utils/orderNote";
 import { splitPersonName } from "../utils/personName";
 
@@ -228,7 +229,7 @@ export default function TicketsAdmin() {
   const [statusFilter, setStatusFilter] = useState("attention");
 
   const refreshAll = useCallback(async () => {
-    if (!token || user?.role !== "ADMIN") return;
+    if (!token || !isTenantAdminPanelUser(user)) return;
     setLoading(true);
     try {
       const nextJobs = await getPrintJobsAdmin(token, { limit: 50 });
@@ -335,7 +336,7 @@ export default function TicketsAdmin() {
     }
   };
 
-  if (!token || user?.role !== "ADMIN") {
+  if (!token || !isTenantAdminPanelUser(user)) {
     return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
   }
 

@@ -20,6 +20,7 @@ import { SiteSettingsProvider } from "./context/SiteSettingsContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import Home from "./pages/Home";
 import { lazyWithSingleReload } from "./utils/lazyWithSingleReload";
+import { isTenantAdminPanelUser } from "./utils/adminAccess";
 import { slugifyCity } from "./utils/slugifyCity";
 const Dashboard = lazyWithSingleReload(() => import("./pages/Dashboard"), "route-dashboard");
 const EditProduct = lazyWithSingleReload(() => import("./pages/EditProduct"), "route-edit-product");
@@ -135,7 +136,7 @@ const AdminRoute = ({ children }) => {
   const { tr } = useLanguage();
 
   if (loading) return <p>{tr("Chargement...", "Loading...")}</p>;
-  if (!token || user?.role !== "ADMIN") return <Navigate to="/login" replace />;
+  if (!token || !isTenantAdminPanelUser(user)) return <Navigate to="/login" replace />;
   return children;
 };
 

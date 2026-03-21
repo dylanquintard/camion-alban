@@ -9,6 +9,7 @@ import {
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { ActionIconButton, DeleteIcon, EditIcon } from "../components/ui/AdminActions";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 
 const emptyNewIngredient = {
   name: "",
@@ -54,7 +55,7 @@ export default function Ingredients() {
 
   useEffect(() => {
     if (authLoading || !user || !token) return;
-    if (user.role !== "ADMIN") {
+    if (!isTenantAdminPanelUser(user)) {
       setMessage(tr("Accès refusé : administrateur uniquement", "Access denied: admin only"));
       return;
     }

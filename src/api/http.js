@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_BASE_URL } from "../config/env";
+import { API_BASE_URL, TENANT_SLUG } from "../config/env";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -65,21 +65,34 @@ async function refreshCsrfToken() {
 
 api.interceptors.request.use((config) => {
   const withPotentialCsrfRefresh = async () => {
+    const nextConfig = { ...config };
+    const nextHeaders = {
+      ...(config.headers || {}),
+    };
+
+    if (TENANT_SLUG) {
+      nextHeaders["x-tenant-slug"] = TENANT_SLUG;
+    }
+
     const method = String(config?.method || "get").toLowerCase();
-    if (!MUTATING_METHODS.has(method)) return config;
-    if (isPublicMutatingRequest(config)) return config;
+    if (!MUTATING_METHODS.has(method)) {
+      nextConfig.headers = nextHeaders;
+      return nextConfig;
+    }
+    if (isPublicMutatingRequest(config)) {
+      nextConfig.headers = nextHeaders;
+      return nextConfig;
+    }
 
     if (!csrfToken) {
       await refreshCsrfToken();
     }
 
-    if (!csrfToken) return config;
+    if (csrfToken) {
+      nextHeaders[CSRF_HEADER_NAME] = csrfToken;
+    }
 
-    const nextConfig = { ...config };
-    nextConfig.headers = {
-      ...(config.headers || {}),
-      [CSRF_HEADER_NAME]: csrfToken,
-    };
+    nextConfig.headers = nextHeaders;
     return nextConfig;
   };
 

@@ -19,6 +19,25 @@ const normalizeBrandLogoUrl = (value) => {
   return "";
 };
 
+const isLocalHttpUrl = (value) => {
+  const normalized = normalizeUrl(value);
+  if (!normalized) return false;
+
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== "http:") return false;
+    const hostname = String(parsed.hostname || "").trim().toLowerCase();
+    return (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "[::1]" ||
+      hostname === "::1"
+    );
+  } catch (_err) {
+    return false;
+  }
+};
+
 const clientEnv =
   typeof import.meta !== "undefined" && import.meta.env ? import.meta.env : {};
 const nodeEnv =
@@ -42,6 +61,9 @@ const configuredApiBaseUrl = normalizeUrl(
 const configuredSiteUrl = normalizeUrl(
   readClientEnv("VITE_SITE_URL", "REACT_APP_SITE_URL")
 );
+const configuredTenantSlug = String(
+  readClientEnv("VITE_TENANT_SLUG", "REACT_APP_TENANT_SLUG")
+).trim().toLowerCase();
 const runtimeSiteUrl =
   typeof window !== "undefined" ? normalizeUrl(window.location.origin) : "";
 const fallbackSiteUrl = "https://example.invalid";
@@ -51,7 +73,10 @@ if (isProduction) {
     throw new Error("VITE_API_BASE_URL is required in production.");
   }
 
-  if (!configuredApiBaseUrl.startsWith("https://")) {
+  if (
+    !configuredApiBaseUrl.startsWith("https://") &&
+    !isLocalHttpUrl(configuredApiBaseUrl)
+  ) {
     throw new Error("VITE_API_BASE_URL must use HTTPS in production.");
   }
 }
@@ -60,6 +85,7 @@ export const API_BASE_URL =
   configuredApiBaseUrl || localApiBaseUrl;
 
 export const SITE_URL = configuredSiteUrl || runtimeSiteUrl || fallbackSiteUrl;
+export const TENANT_SLUG = configuredTenantSlug;
 
 export const REALTIME_STREAM_URL = `${API_BASE_URL}/realtime/stream`;
 

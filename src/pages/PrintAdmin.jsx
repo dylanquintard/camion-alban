@@ -14,6 +14,7 @@ import {
 } from "../api/admin.api";
 import { getLocations } from "../api/location.api";
 import { ActionIconButton, DeleteIcon, EditIcon } from "../components/ui/AdminActions";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 import { getLocationDisplayName } from "../utils/location";
 
 const AUTO_REFRESH_MS = 10_000;
@@ -138,7 +139,7 @@ export default function PrintAdmin() {
   };
 
   const refreshAll = useCallback(async () => {
-    if (!token || user?.role !== "ADMIN") return;
+    if (!token || !isTenantAdminPanelUser(user)) return;
     setLoading(true);
     try {
       const [nextOverview, nextAgents, nextPrinters, nextLocations] = await Promise.all([
@@ -402,7 +403,7 @@ export default function PrintAdmin() {
     }
   };
 
-  if (!token || user?.role !== "ADMIN") {
+  if (!token || !isTenantAdminPanelUser(user)) {
     return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
   }
 

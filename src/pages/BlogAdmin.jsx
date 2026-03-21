@@ -9,6 +9,7 @@ import {
 import { uploadGalleryImage } from "../api/gallery.api";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 import { slugify } from "../utils/slugify";
 
 function createParagraph(seed = {}) {
@@ -590,7 +591,7 @@ export default function BlogAdmin() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!token || user?.role !== "ADMIN") return;
+    if (!token || !isTenantAdminPanelUser(user)) return;
     loadArticles();
   }, [authLoading, loadArticles, token, user]);
 
@@ -694,7 +695,7 @@ export default function BlogAdmin() {
     return <p>{tr("Chargement...", "Loading...")}</p>;
   }
 
-  if (!token || user?.role !== "ADMIN") {
+  if (!token || !isTenantAdminPanelUser(user)) {
     return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
   }
 

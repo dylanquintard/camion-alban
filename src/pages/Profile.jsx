@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { updateMe } from "../api/user.api";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 import { buildFullName, splitPersonName } from "../utils/personName";
 
 export default function Profile() {
@@ -125,7 +126,7 @@ export default function Profile() {
     "rounded-full border border-white/20 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-stone-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60";
   const primaryButtonClassName =
     "rounded-full bg-saffron px-5 py-2 text-xs font-bold uppercase tracking-wide text-charcoal transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60";
-  const roleLabel = user?.role === "ADMIN" ? tr("Administrateur", "Administrator") : tr("Client", "Customer");
+  const roleLabel = isTenantAdminPanelUser(user) ? tr("Administrateur", "Administrator") : tr("Client", "Customer");
   const liveFullName = buildFullName(firstName, lastName);
   const savedName = splitPersonName(user || {});
   const displayName = (liveFullName || savedName.fullName || tr("Utilisateur", "User")).trim();

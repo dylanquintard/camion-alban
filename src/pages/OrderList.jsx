@@ -9,6 +9,7 @@ import {
 } from "../api/admin.api";
 import { useRealtimeEvents } from "../hooks/useRealtimeEvents";
 import { ActionIconButton, DeleteIcon } from "../components/ui/AdminActions";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 import { getOrderNote } from "../utils/orderNote";
 import { splitPersonName } from "../utils/personName";
 
@@ -114,7 +115,7 @@ export default function OrderList() {
   };
 
   const fetchOrders = useCallback(async () => {
-    if (!token || !user || user.role !== "ADMIN") return;
+    if (!token || !isTenantAdminPanelUser(user)) return;
 
     setLoading(true);
     try {
@@ -166,13 +167,13 @@ export default function OrderList() {
   );
 
   useRealtimeEvents({
-    enabled: Boolean(token && user?.role === "ADMIN"),
+    enabled: Boolean(token && isTenantAdminPanelUser(user)),
     onEvent: handleRealtimeEvent,
     onConnectionChange: setRealtimeConnected,
   });
 
   useEffect(() => {
-    if (!token || !user || user.role !== "ADMIN") return;
+    if (!token || !isTenantAdminPanelUser(user)) return;
 
     let cancelled = false;
 

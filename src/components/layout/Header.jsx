@@ -9,6 +9,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { BRAND_LOGO_URL } from "../../config/env";
 import { getAdminNavLinks } from "../../navigation/adminLinks";
 import { DEFAULT_SITE_SETTINGS } from "../../site/siteSettings";
+import { isTenantAdminPanelUser } from "../../utils/adminAccess";
 import { getGallerySmallThumbnailUrl, getGalleryThumbnailUrl } from "../../utils/url";
 
 const MOBILE_VIEWPORT_QUERY = "(max-width: 767px)";
@@ -128,7 +129,7 @@ export default function Header() {
   const profileRef = useRef(null);
   const totalItems = Number(itemCount || 0);
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const isAdminUser = user?.role === "ADMIN";
+  const isAdminUser = isTenantAdminPanelUser(user);
   const seoPageLinks = [
     { to: "/pizza", label: tr("Nos pizzas", "Our pizzas") },
     { to: "/menu", label: tr("Menu", "Menu") },
@@ -338,7 +339,7 @@ export default function Header() {
               <ThemeToggle isLight={isLightTheme} onToggle={toggleTheme} tr={tr} className="hidden sm:inline-flex" />
             )}
 
-            {token && user?.role === "ADMIN" && (
+            {token && isAdminUser && (
               <Link
                 to="/admin/orders"
                 className="hidden lg:inline-flex rounded-full border border-emerald-400/50 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"

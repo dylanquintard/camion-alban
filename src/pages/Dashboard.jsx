@@ -6,6 +6,7 @@ import { useSiteSettings } from "../context/SiteSettingsContext";
 import { getAdminNavLinks } from "../navigation/adminLinks";
 import SeoHead from "../components/seo/SeoHead";
 import { DEFAULT_SITE_SETTINGS } from "../site/siteSettings";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 
 export default function Dashboard({ children }) {
   const { user } = useContext(AuthContext);
@@ -17,7 +18,7 @@ export default function Dashboard({ children }) {
     (item) => item && typeof item.to === "string" && item.to
   );
 
-  if (!user || user.role !== "ADMIN") {
+  if (!isTenantAdminPanelUser(user)) {
     return (
       <div className="section-shell">
         <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-red-200">

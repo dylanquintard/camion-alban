@@ -6,6 +6,7 @@ import { StatusToggle } from "../components/ui/AdminActions";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useSiteSettings } from "../context/SiteSettingsContext";
+import { isTenantAdminPanelUser } from "../utils/adminAccess";
 
 function formatPrice(value) {
   const numeric = Number(value);
@@ -38,7 +39,7 @@ export default function GalleryMenuAdmin() {
   }, [token]);
 
   useEffect(() => {
-    if (authLoading || !token || user?.role !== "ADMIN") return;
+    if (authLoading || !token || !isTenantAdminPanelUser(user)) return;
     setLoading(true);
     Promise.all([fetchProducts(), getAdminSiteSettings(token)])
       .then(([, settings]) => {
@@ -175,7 +176,7 @@ export default function GalleryMenuAdmin() {
   };
 
   if (authLoading || loading) return <p>{tr("Chargement...", "Loading...")}</p>;
-  if (!token || user?.role !== "ADMIN") {
+  if (!token || !isTenantAdminPanelUser(user)) {
     return <p>{tr("Acces refuse : administrateur uniquement", "Access denied: admin only")}</p>;
   }
 
