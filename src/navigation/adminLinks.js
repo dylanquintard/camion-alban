@@ -18,6 +18,7 @@ export const ADMIN_NAV_LINKS = Object.freeze([
 
 export function getAdminNavLinks(tr) {
   return ADMIN_NAV_LINKS.map((item) => ({
+    ...item,
     to: item.to,
     label: typeof tr === "function" ? tr(item.labelFr, item.labelEn) : item.labelFr,
   }));
