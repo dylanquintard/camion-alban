@@ -1346,9 +1346,8 @@ export default function Order() {
         items: sortProductsByPrice(entry.items).map((product) => ({
           ...product,
           isCustomizable:
-            typeof entry.customerCanCustomize === "boolean"
-              ? entry.customerCanCustomize
-              : isCustomizableProduct(product, entry.title),
+            entry.customerCanCustomize === true ||
+            isCustomizableProduct(product, entry.title),
         })),
       }));
   }, [categories, products, tr]);
