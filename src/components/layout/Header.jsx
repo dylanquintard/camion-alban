@@ -159,8 +159,7 @@ export default function Header() {
     [headerLogoPreferredUrl]
   );
   const shouldEagerLoadLogo = !isNarrowViewport && location.pathname === "/";
-  const shouldExposeCustomerSession =
-    tenantFeatures.isCustomerAccountsEnabled || tenantFeatures.isOrderingEnabled;
+  const shouldExposeCustomerSession = tenantFeatures.isCustomerAccountsEnabled;
 
   const closeMobileMenus = () => {
     setMobileOpen(false);
@@ -357,7 +356,7 @@ export default function Header() {
             )}
 
             {token ? (
-              tenantFeatures.isOrderingEnabled ? (
+              tenantFeatures.isCustomerOrderingEnabled ? (
                 <Link
                   to="/order"
                   className="hidden md:inline-flex rounded-full bg-saffron px-4 py-2 text-xs font-bold uppercase tracking-wide text-charcoal shadow-fire transition hover:bg-amber-300"
@@ -374,7 +373,7 @@ export default function Header() {
               </Link>
             ) : null}
 
-            {token && !isAdminRoute && tenantFeatures.isOrderingEnabled && (
+            {token && !isAdminRoute && tenantFeatures.isCustomerOrderingEnabled && (
               <div ref={cartRef} className="relative">
                 <button
                   type="button"
@@ -481,7 +480,7 @@ export default function Header() {
                   <div className="absolute right-0 mt-3 w-[260px] max-w-[90vw] rounded-2xl border border-stone-200 bg-white p-3 text-stone-900 shadow-2xl">
                     <p className="mb-2 text-xs font-bold uppercase tracking-wide text-stone-500">{tr("Espace client", "Account")}</p>
                     <div className="grid gap-1">
-                      {!isAdminUser && tenantFeatures.isCustomerAccountsEnabled && tenantFeatures.isOrderingEnabled && (
+                      {!isAdminUser && tenantFeatures.isCustomerOrderingEnabled && (
                         <Link
                           to="/userorders"
                           className="rounded-md px-3 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-100"
@@ -562,7 +561,7 @@ export default function Header() {
                   </Link>
                 ))}
 
-                {token && !isAdminUser && tenantFeatures.isCustomerAccountsEnabled && tenantFeatures.isOrderingEnabled && (
+                {token && !isAdminUser && tenantFeatures.isCustomerOrderingEnabled && (
                   <Link
                     to="/userorders"
                     onClick={closeMobileMenus}
@@ -583,7 +582,7 @@ export default function Header() {
                 )}
 
                 {token ? (
-                  tenantFeatures.isOrderingEnabled ? (
+                  tenantFeatures.isCustomerOrderingEnabled ? (
                     <Link
                       to="/order"
                       onClick={closeMobileMenus}

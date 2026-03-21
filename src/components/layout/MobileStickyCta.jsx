@@ -34,7 +34,7 @@ export default function MobileStickyCta() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 px-4 md:hidden">
       <div className="pointer-events-auto mx-auto flex max-w-md items-center gap-3 rounded-full border border-saffron/35 bg-charcoal/95 p-2 shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur">
-        {tenantFeatures.isOrderingEnabled ? (
+        {tenantFeatures.isCustomerOrderingEnabled ? (
           <Link
             to="/order"
             className="flex-1 rounded-full bg-saffron px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-charcoal transition hover:bg-yellow-300"

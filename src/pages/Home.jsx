@@ -618,7 +618,7 @@ const truckTourSchedule = useMemo(
               {heroSubtitle}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              {tenantFeatures.isOrderingEnabled ? (
+              {tenantFeatures.isCustomerOrderingEnabled ? (
                 <Link
                   to="/order"
                   className="rounded-full bg-saffron px-6 py-3 text-sm font-bold uppercase tracking-wide text-charcoal transition hover:bg-yellow-300"

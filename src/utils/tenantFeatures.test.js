@@ -21,8 +21,19 @@ describe("tenantFeatures", () => {
     expect(access.isOrderingEnabled).toBe(true);
     expect(access.isPrintingEnabled).toBe(true);
     expect(access.isCustomerAccountsEnabled).toBe(true);
+    expect(access.isCustomerOrderingEnabled).toBe(true);
     expect(access.isMenuEnabled).toBe(true);
     expect(access.isBlogEnabled).toBe(false);
+  });
+
+  it("requires both orders and customer accounts for customer ordering", () => {
+    const access = buildTenantFeatureAccess({
+      modules: [{ code: "opt_orders", enabled: true }],
+    });
+
+    expect(access.isOrderingEnabled).toBe(true);
+    expect(access.isCustomerAccountsEnabled).toBe(false);
+    expect(access.isCustomerOrderingEnabled).toBe(false);
   });
 
   it("filters admin links against required modules", () => {

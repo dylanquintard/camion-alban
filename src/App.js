@@ -266,7 +266,7 @@ function AppRoutes() {
           <Route
             path="/order"
             element={
-              <FeatureRoute enabled={tenantFeatures.isOrderingEnabled}>
+              <FeatureRoute enabled={tenantFeatures.isCustomerOrderingEnabled}>
                 <PrivateRoute>
                   <Order />
                 </PrivateRoute>
@@ -276,7 +276,7 @@ function AppRoutes() {
           <Route
             path="/order/confirmation"
             element={
-              <FeatureRoute enabled={tenantFeatures.isOrderingEnabled}>
+              <FeatureRoute enabled={tenantFeatures.isCustomerOrderingEnabled}>
                 <PrivateRoute>
                   <OrderConfirmation />
                 </PrivateRoute>
@@ -295,10 +295,7 @@ function AppRoutes() {
             path="/userorders"
             element={
               <FeatureRoute
-                enabled={
-                  tenantFeatures.isOrderingEnabled &&
-                  tenantFeatures.isCustomerAccountsEnabled
-                }
+                enabled={tenantFeatures.isCustomerOrderingEnabled}
               >
                 <PrivateRoute>
                   <UserOrders />

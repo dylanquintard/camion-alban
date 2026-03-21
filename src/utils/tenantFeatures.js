@@ -24,12 +24,17 @@ export function buildTenantFeatureAccess(payload = {}) {
   const hasAny = (codes = []) =>
     codes.some((code) => enabledCodes.has(String(code || "").trim().toLowerCase()));
 
+  const isOrderingEnabled = hasAny(FEATURE_ALIASES.ordering);
+  const isCustomerAccountsEnabled = hasAny(FEATURE_ALIASES.customerAccounts);
+  const isCustomerOrderingEnabled = isOrderingEnabled && isCustomerAccountsEnabled;
+
   return {
     loading: false,
     planCode: String(payload?.subscription?.planCode || "").trim().toLowerCase() || null,
     moduleCodes: [...enabledCodes],
-    isOrderingEnabled: hasAny(FEATURE_ALIASES.ordering),
-    isCustomerAccountsEnabled: hasAny(FEATURE_ALIASES.customerAccounts),
+    isOrderingEnabled,
+    isCustomerAccountsEnabled,
+    isCustomerOrderingEnabled,
     isPrintingEnabled: hasAny(FEATURE_ALIASES.printing),
     isMobileOperationsEnabled: hasAny(FEATURE_ALIASES.mobileOperations),
     isStaffAccessEnabled: hasAny(FEATURE_ALIASES.staffAccess),
@@ -52,6 +57,7 @@ export function createLoadingTenantFeatureAccess() {
     moduleCodes: [],
     isOrderingEnabled: false,
     isCustomerAccountsEnabled: false,
+    isCustomerOrderingEnabled: false,
     isPrintingEnabled: false,
     isMobileOperationsEnabled: false,
     isStaffAccessEnabled: false,
