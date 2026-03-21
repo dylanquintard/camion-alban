@@ -13,6 +13,7 @@ import {
 } from "../api/timeslot.api";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { useTenantFeatures } from "../context/TenantFeaturesContext";
 import { getLocationDisplayName } from "../utils/location";
 import LocationManagerSection from "../components/common/LocationManagerSection";
 
@@ -139,6 +140,8 @@ function buildDeleteServicePayload(service) {
 export default function TimeslotsAdmin() {
   const { token } = useContext(AuthContext);
   const { tr } = useLanguage();
+  const tenantFeatures = useTenantFeatures();
+  const printEnabled = tenantFeatures.isPrintingEnabled;
 
   const [locations, setLocations] = useState([]);
   const [agents, setAgents] = useState([]);
@@ -173,8 +176,8 @@ export default function TimeslotsAdmin() {
       const [locationData, settingsData, agentsData, closuresData] = await Promise.all([
         getLocations({ active: true }),
         getWeeklySettings(token),
-        getPrintAgentsAdmin(token),
-        getTruckClosures(token),
+        printEnabled ? getPrintAgentsAdmin(token) : Promise.resolve([]),
+        printEnabled ? getTruckClosures(token) : Promise.resolve([]),
       ]);
       setLocations(Array.isArray(locationData) ? locationData : []);
       setWeeklySettings(Array.isArray(settingsData) ? settingsData : []);
@@ -192,7 +195,7 @@ export default function TimeslotsAdmin() {
     } finally {
       setLoading(false);
     }
-  }, [token, tr]);
+  }, [printEnabled, token, tr]);
 
   useEffect(() => {
     refreshData();
@@ -593,30 +596,31 @@ export default function TimeslotsAdmin() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-saffron">
-              {tr("Dates de fermeture camion", "Truck closure dates")}
-            </h4>
+          {printEnabled ? (
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <h4 className="text-sm font-semibold uppercase tracking-wide text-saffron">
+                {tr("Dates de fermeture camion", "Truck closure dates")}
+              </h4>
 
-            <form onSubmit={handleAddClosure} className="mt-3 space-y-3">
-              <label className="text-sm text-stone-300">
-                {tr("Camion", "Truck")}
-                <select
-                  value={closureForm.agentId}
-                  onChange={(event) =>
-                    setClosureForm((prev) => ({ ...prev, agentId: event.target.value }))
-                  }
-                  required
-                  className="mt-1 w-full rounded-lg border border-white/20 bg-charcoal/70 px-3 py-2 text-white"
-                >
-                  <option value="">{tr("Choisir un camion", "Choose a truck")}</option>
-                  {agents.map((agent) => (
-                    <option key={agent.id} value={agent.id}>
-                      {agent.name} ({agent.code})
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <form onSubmit={handleAddClosure} className="mt-3 space-y-3">
+                <label className="text-sm text-stone-300">
+                  {tr("Camion", "Truck")}
+                  <select
+                    value={closureForm.agentId}
+                    onChange={(event) =>
+                      setClosureForm((prev) => ({ ...prev, agentId: event.target.value }))
+                    }
+                    required
+                    className="mt-1 w-full rounded-lg border border-white/20 bg-charcoal/70 px-3 py-2 text-white"
+                  >
+                    <option value="">{tr("Choisir un camion", "Choose a truck")}</option>
+                    {agents.map((agent) => (
+                      <option key={agent.id} value={agent.id}>
+                        {agent.name} ({agent.code})
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-sm text-stone-300">
@@ -659,44 +663,57 @@ export default function TimeslotsAdmin() {
                 />
               </label>
 
-              <button
-                type="submit"
-                disabled={saving}
-                className="rounded-full bg-saffron px-5 py-2 text-sm font-bold uppercase tracking-wide text-charcoal transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {tr("Ajouter fermeture", "Add closure")}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="rounded-full bg-saffron px-5 py-2 text-sm font-bold uppercase tracking-wide text-charcoal transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {tr("Ajouter fermeture", "Add closure")}
+                </button>
+              </form>
 
-            <div className="mt-4 space-y-2">
-              {sortedClosures.length === 0 ? (
-                <p className="text-sm text-stone-400">{tr("Aucune fermeture", "No closure")}</p>
-              ) : (
-                sortedClosures.map((closure) => (
-                  <div
-                    key={closure.id}
-                    className="rounded-xl border border-white/10 bg-charcoal/45 px-3 py-2 text-sm text-stone-200"
-                  >
-                    <p className="font-semibold text-white">
-                      {closure.agent?.name || tr("Camion", "Truck")} ({closure.agent?.code || "?"})
-                    </p>
-                    <p className="text-xs text-stone-300">
-                      {tr("Du", "From")} {formatDateValue(closure.startDate)} {tr("au", "to")}{" "}
-                      {formatDateValue(closure.endDate)}
-                    </p>
-                    {closure.reason ? <p className="text-xs text-stone-300">{closure.reason}</p> : null}
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteClosure(closure.id)}
-                      className="mt-2 rounded-lg border border-red-400/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-200 transition hover:bg-red-500/20"
+              <div className="mt-4 space-y-2">
+                {sortedClosures.length === 0 ? (
+                  <p className="text-sm text-stone-400">{tr("Aucune fermeture", "No closure")}</p>
+                ) : (
+                  sortedClosures.map((closure) => (
+                    <div
+                      key={closure.id}
+                      className="rounded-xl border border-white/10 bg-charcoal/45 px-3 py-2 text-sm text-stone-200"
                     >
-                      {tr("Supprimer fermeture", "Delete closure")}
-                    </button>
-                  </div>
-                ))
-              )}
+                      <p className="font-semibold text-white">
+                        {closure.agent?.name || tr("Camion", "Truck")} ({closure.agent?.code || "?"})
+                      </p>
+                      <p className="text-xs text-stone-300">
+                        {tr("Du", "From")} {formatDateValue(closure.startDate)} {tr("au", "to")}{" "}
+                        {formatDateValue(closure.endDate)}
+                      </p>
+                      {closure.reason ? <p className="text-xs text-stone-300">{closure.reason}</p> : null}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteClosure(closure.id)}
+                        className="mt-2 rounded-lg border border-red-400/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-200 transition hover:bg-red-500/20"
+                      >
+                        {tr("Supprimer fermeture", "Delete closure")}
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <h4 className="text-sm font-semibold uppercase tracking-wide text-saffron">
+                {tr("Horaires starter", "Starter schedules")}
+              </h4>
+              <p className="mt-2 text-sm text-stone-300">
+                {tr(
+                  "Le plan Starter garde les horaires et emplacements. Les camions, tickets et fermetures par print agent restent reserves au plan Pro.",
+                  "Starter keeps schedules and locations. Trucks, tickets and print-agent closures stay reserved for Pro."
+                )}
+              </p>
+            </div>
+          )}
         </aside>
 
         <section className="rounded-2xl border border-white/10 bg-charcoal/35 p-5">
@@ -799,23 +816,25 @@ export default function TimeslotsAdmin() {
                       </select>
                     </label>
 
-                    <label className="text-sm text-stone-300 sm:col-span-2">
-                      {tr("Camion lie", "Linked truck")}
-                      <select
-                        value={form.agentId}
-                        onChange={(event) =>
-                          setForm((prev) => ({ ...prev, agentId: event.target.value }))
-                        }
-                        className="mt-1 w-full rounded-lg border border-white/20 bg-charcoal/70 px-3 py-2 text-white"
-                      >
-                        <option value="">{tr("Aucun camion", "No truck")}</option>
-                        {agents.map((agent) => (
-                          <option key={agent.id} value={agent.id}>
-                            {agent.name} ({agent.code})
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    {printEnabled ? (
+                      <label className="text-sm text-stone-300 sm:col-span-2">
+                        {tr("Camion lie", "Linked truck")}
+                        <select
+                          value={form.agentId}
+                          onChange={(event) =>
+                            setForm((prev) => ({ ...prev, agentId: event.target.value }))
+                          }
+                          className="mt-1 w-full rounded-lg border border-white/20 bg-charcoal/70 px-3 py-2 text-white"
+                        >
+                          <option value="">{tr("Aucun camion", "No truck")}</option>
+                          {agents.map((agent) => (
+                            <option key={agent.id} value={agent.id}>
+                              {agent.name} ({agent.code})
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-1">

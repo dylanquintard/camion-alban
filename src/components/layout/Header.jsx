@@ -159,6 +159,8 @@ export default function Header() {
     [headerLogoPreferredUrl]
   );
   const shouldEagerLoadLogo = !isNarrowViewport && location.pathname === "/";
+  const shouldExposeCustomerSession =
+    tenantFeatures.isCustomerAccountsEnabled || tenantFeatures.isOrderingEnabled;
 
   const closeMobileMenus = () => {
     setMobileOpen(false);
@@ -363,14 +365,14 @@ export default function Header() {
                   {tr("Commander", "Order")}
                 </Link>
               ) : null
-            ) : (
+            ) : shouldExposeCustomerSession ? (
               <Link
                 to="/login"
                 className="hidden md:inline-flex rounded-full border border-saffron/70 px-4 py-2 text-xs font-bold uppercase tracking-wide text-saffron transition hover:bg-saffron/10"
               >
                 {tr("Se connecter", "Sign in")}
               </Link>
-            )}
+            ) : null}
 
             {token && !isAdminRoute && tenantFeatures.isOrderingEnabled && (
               <div ref={cartRef} className="relative">
@@ -455,7 +457,7 @@ export default function Header() {
               </div>
             )}
 
-            {token && !isAdminRoute && (
+            {token && !isAdminRoute && (isAdminUser || tenantFeatures.isCustomerAccountsEnabled) && (
               <div ref={profileRef} className="relative">
                 <button
                   type="button"
@@ -570,7 +572,7 @@ export default function Header() {
                   </Link>
                 )}
 
-                {token && (
+                {token && (isAdminUser || tenantFeatures.isCustomerAccountsEnabled) && (
                   <Link
                     to="/profile"
                     onClick={closeMobileMenus}
@@ -590,7 +592,7 @@ export default function Header() {
                       {tr("Commander", "Order")}
                     </Link>
                   ) : null
-                ) : (
+                ) : shouldExposeCustomerSession ? (
                   <Link
                     to="/login"
                     onClick={closeMobileMenus}
@@ -598,7 +600,7 @@ export default function Header() {
                   >
                     {tr("Se connecter", "Sign in")}
                   </Link>
-                )}
+                ) : null}
 
                 {token && isAdminUser && safeAdminMenuLinks.length > 0 && (
                   <div className="mt-2 rounded-lg border border-emerald-400/40 bg-emerald-500/10 p-2">
