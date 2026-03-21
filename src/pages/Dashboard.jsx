@@ -3,19 +3,26 @@ import { NavLink, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useSiteSettings } from "../context/SiteSettingsContext";
+import { useTenantFeatures } from "../context/TenantFeaturesContext";
 import { getAdminNavLinks } from "../navigation/adminLinks";
 import SeoHead from "../components/seo/SeoHead";
 import { DEFAULT_SITE_SETTINGS } from "../site/siteSettings";
 import { isTenantAdminPanelUser } from "../utils/adminAccess";
+import { isAdminLinkEnabled } from "../utils/tenantFeatures";
 
 export default function Dashboard({ children }) {
   const { user } = useContext(AuthContext);
   const { tr } = useLanguage();
   const { settings } = useSiteSettings();
+  const tenantFeatures = useTenantFeatures();
   const location = useLocation();
   const siteName = settings.siteName || DEFAULT_SITE_SETTINGS.siteName;
   const safeAdminLinks = getAdminNavLinks(tr).filter(
-    (item) => item && typeof item.to === "string" && item.to
+    (item) =>
+      item &&
+      typeof item.to === "string" &&
+      item.to &&
+      isAdminLinkEnabled(item, tenantFeatures)
   );
 
   if (!isTenantAdminPanelUser(user)) {

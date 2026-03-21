@@ -6,10 +6,12 @@ import { CartContext } from "../../context/CartContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useTenantFeatures } from "../../context/TenantFeaturesContext";
 import { BRAND_LOGO_URL } from "../../config/env";
 import { getAdminNavLinks } from "../../navigation/adminLinks";
 import { DEFAULT_SITE_SETTINGS } from "../../site/siteSettings";
 import { isTenantAdminPanelUser } from "../../utils/adminAccess";
+import { isAdminLinkEnabled } from "../../utils/tenantFeatures";
 import { getGallerySmallThumbnailUrl, getGalleryThumbnailUrl } from "../../utils/url";
 
 const MOBILE_VIEWPORT_QUERY = "(max-width: 767px)";
@@ -115,6 +117,7 @@ export default function Header() {
   const { language, setLanguage, tr } = useLanguage();
   const { settings: siteSettings } = useSiteSettings();
   const { theme, toggleTheme, setTheme } = useTheme();
+  const tenantFeatures = useTenantFeatures();
   const isLightTheme = theme === "light";
   const iconColorClass = isLightTheme ? "text-stone-900" : "text-white";
 
@@ -138,10 +141,13 @@ export default function Header() {
     { to: "/contact", label: tr("Contact", "Contact") },
     { to: "/blog", label: tr("Blog", "Blog") },
   ];
-  const adminMenuLinks = isAdminUser ? getAdminNavLinks(tr) : [];
+  const adminMenuLinks = isAdminUser
+    ? getAdminNavLinks(tr).filter((item) => isAdminLinkEnabled(item, tenantFeatures))
+    : [];
   const safeAdminMenuLinks = adminMenuLinks.filter(
     (item) => item && typeof item.to === "string" && item.to
   );
+  const primaryAdminLink = safeAdminMenuLinks[0]?.to || "/admin";
   const configuredLogoUrl = String(siteSettings.seo?.headerLogoUrl || "").trim();
   const headerLogoUrl = configuredLogoUrl || BRAND_LOGO_URL;
   const headerLogoPreferredUrl = useMemo(
@@ -341,7 +347,7 @@ export default function Header() {
 
             {token && isAdminUser && (
               <Link
-                to="/admin/orders"
+                to={primaryAdminLink}
                 className="hidden lg:inline-flex rounded-full border border-emerald-400/50 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"
               >
                 Admin
@@ -349,12 +355,14 @@ export default function Header() {
             )}
 
             {token ? (
-              <Link
-                to="/order"
-                className="hidden md:inline-flex rounded-full bg-saffron px-4 py-2 text-xs font-bold uppercase tracking-wide text-charcoal shadow-fire transition hover:bg-amber-300"
-              >
-                {tr("Commander", "Order")}
-              </Link>
+              tenantFeatures.isOrderingEnabled ? (
+                <Link
+                  to="/order"
+                  className="hidden md:inline-flex rounded-full bg-saffron px-4 py-2 text-xs font-bold uppercase tracking-wide text-charcoal shadow-fire transition hover:bg-amber-300"
+                >
+                  {tr("Commander", "Order")}
+                </Link>
+              ) : null
             ) : (
               <Link
                 to="/login"
@@ -364,7 +372,7 @@ export default function Header() {
               </Link>
             )}
 
-            {token && !isAdminRoute && (
+            {token && !isAdminRoute && tenantFeatures.isOrderingEnabled && (
               <div ref={cartRef} className="relative">
                 <button
                   type="button"
@@ -471,7 +479,7 @@ export default function Header() {
                   <div className="absolute right-0 mt-3 w-[260px] max-w-[90vw] rounded-2xl border border-stone-200 bg-white p-3 text-stone-900 shadow-2xl">
                     <p className="mb-2 text-xs font-bold uppercase tracking-wide text-stone-500">{tr("Espace client", "Account")}</p>
                     <div className="grid gap-1">
-                      {!isAdminUser && (
+                      {!isAdminUser && tenantFeatures.isCustomerAccountsEnabled && tenantFeatures.isOrderingEnabled && (
                         <Link
                           to="/userorders"
                           className="rounded-md px-3 py-2 text-sm font-medium text-stone-800 transition hover:bg-stone-100"
@@ -552,7 +560,7 @@ export default function Header() {
                   </Link>
                 ))}
 
-                {token && !isAdminUser && (
+                {token && !isAdminUser && tenantFeatures.isCustomerAccountsEnabled && tenantFeatures.isOrderingEnabled && (
                   <Link
                     to="/userorders"
                     onClick={closeMobileMenus}
@@ -573,13 +581,15 @@ export default function Header() {
                 )}
 
                 {token ? (
-                  <Link
-                    to="/order"
-                    onClick={closeMobileMenus}
-                    className="mt-1 rounded-md bg-saffron px-3 py-2 text-center text-sm font-semibold text-charcoal"
-                  >
-                    {tr("Commander", "Order")}
-                  </Link>
+                  tenantFeatures.isOrderingEnabled ? (
+                    <Link
+                      to="/order"
+                      onClick={closeMobileMenus}
+                      className="mt-1 rounded-md bg-saffron px-3 py-2 text-center text-sm font-semibold text-charcoal"
+                    >
+                      {tr("Commander", "Order")}
+                    </Link>
+                  ) : null
                 ) : (
                   <Link
                     to="/login"

@@ -7,6 +7,7 @@ import { getAllProductsClient } from "../api/user.api";
 import SeoHead from "../components/seo/SeoHead";
 import { useLanguage } from "../context/LanguageContext";
 import { useSiteSettings } from "../context/SiteSettingsContext";
+import { useTenantFeatures } from "../context/TenantFeaturesContext";
 import { useTheme } from "../context/ThemeContext";
 import { buildBaseFoodEstablishmentJsonLd } from "../seo/jsonLd";
 import { DEFAULT_TOUR_CITIES } from "../seo/localLandingContent";
@@ -189,6 +190,7 @@ function DeferredSection({
 export default function Home() {
   const { language, tr } = useLanguage();
   const { settings: siteSettings } = useSiteSettings();
+  const tenantFeatures = useTenantFeatures();
   const { theme } = useTheme();
   const isLightTheme = theme === "light";
   const [products, setProducts] = useState([]);
@@ -616,12 +618,21 @@ const truckTourSchedule = useMemo(
               {heroSubtitle}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link
-                to="/order"
-                className="rounded-full bg-saffron px-6 py-3 text-sm font-bold uppercase tracking-wide text-charcoal transition hover:bg-yellow-300"
-              >
-                {heroPrimaryCtaLabel}
-              </Link>
+              {tenantFeatures.isOrderingEnabled ? (
+                <Link
+                  to="/order"
+                  className="rounded-full bg-saffron px-6 py-3 text-sm font-bold uppercase tracking-wide text-charcoal transition hover:bg-yellow-300"
+                >
+                  {heroPrimaryCtaLabel}
+                </Link>
+              ) : (
+                <Link
+                  to="/contact"
+                  className="rounded-full bg-saffron px-6 py-3 text-sm font-bold uppercase tracking-wide text-charcoal transition hover:bg-yellow-300"
+                >
+                  {tr("Demander un devis", "Request a quote")}
+                </Link>
+              )}
               <a
                 href="#menu"
                 className={`rounded-full px-6 py-3 text-sm font-semibold uppercase tracking-wide transition ${

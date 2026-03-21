@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
+import { useTenantFeatures } from "../../context/TenantFeaturesContext";
 
 const HIDDEN_PREFIXES = ["/admin"];
 const HIDDEN_PATHS = new Set([
@@ -19,6 +20,7 @@ export default function MobileStickyCta() {
   const location = useLocation();
   const { tr } = useLanguage();
   const { settings } = useSiteSettings();
+  const tenantFeatures = useTenantFeatures();
   const pathname = String(location.pathname || "");
   const phone = String(settings.contact?.phone || "").trim();
 
@@ -32,12 +34,21 @@ export default function MobileStickyCta() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 px-4 md:hidden">
       <div className="pointer-events-auto mx-auto flex max-w-md items-center gap-3 rounded-full border border-saffron/35 bg-charcoal/95 p-2 shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur">
-        <Link
-          to="/order"
-          className="flex-1 rounded-full bg-saffron px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-charcoal transition hover:bg-yellow-300"
-        >
-          {tr("Commander", "Order now")}
-        </Link>
+        {tenantFeatures.isOrderingEnabled ? (
+          <Link
+            to="/order"
+            className="flex-1 rounded-full bg-saffron px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-charcoal transition hover:bg-yellow-300"
+          >
+            {tr("Commander", "Order now")}
+          </Link>
+        ) : (
+          <Link
+            to="/menu"
+            className="flex-1 rounded-full bg-saffron px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-charcoal transition hover:bg-yellow-300"
+          >
+            {tr("Voir le menu", "See menu")}
+          </Link>
+        )}
         {phone ? (
           <a
             href={`tel:${phone.replace(/\s+/g, "")}`}

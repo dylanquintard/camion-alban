@@ -17,6 +17,7 @@ import { AuthContext, AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { LanguageProvider, useLanguage } from "./context/LanguageContext";
 import { SiteSettingsProvider } from "./context/SiteSettingsContext";
+import { TenantFeaturesProvider, useTenantFeatures } from "./context/TenantFeaturesContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import Home from "./pages/Home";
 import { lazyWithSingleReload } from "./utils/lazyWithSingleReload";
@@ -140,6 +141,21 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+const FeatureRoute = ({ enabled, fallbackTo = "/", children }) => {
+  const { tr } = useLanguage();
+  const tenantFeatures = useTenantFeatures();
+
+  if (tenantFeatures.loading) {
+    return <p>{tr("Chargement...", "Loading...")}</p>;
+  }
+
+  if (!enabled) {
+    return <Navigate to={fallbackTo} replace />;
+  }
+
+  return children;
+};
+
 const AppLayout = () => {
   const location = useLocation();
   const navigationType = useNavigationType();
@@ -206,6 +222,7 @@ const CatchAllRoute = () => {
 
 function AppRoutes() {
   const { tr } = useLanguage();
+  const tenantFeatures = useTenantFeatures();
   const loadingFallback = (
     <p className="section-shell py-8 text-sm text-stone-400">
       {tr("Chargement...", "Loading...")}
@@ -236,23 +253,34 @@ function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/register" element={<Register />} />
+          <Route
+            path="/register"
+            element={
+              <FeatureRoute enabled={tenantFeatures.isCustomerAccountsEnabled}>
+                <Register />
+              </FeatureRoute>
+            }
+          />
           <Route path="/verify-email" element={<VerifyEmail />} />
 
           <Route
             path="/order"
             element={
-              <PrivateRoute>
-                <Order />
-              </PrivateRoute>
+              <FeatureRoute enabled={tenantFeatures.isOrderingEnabled}>
+                <PrivateRoute>
+                  <Order />
+                </PrivateRoute>
+              </FeatureRoute>
             }
           />
           <Route
             path="/order/confirmation"
             element={
-              <PrivateRoute>
-                <OrderConfirmation />
-              </PrivateRoute>
+              <FeatureRoute enabled={tenantFeatures.isOrderingEnabled}>
+                <PrivateRoute>
+                  <OrderConfirmation />
+                </PrivateRoute>
+              </FeatureRoute>
             }
           />
           <Route
@@ -266,9 +294,16 @@ function AppRoutes() {
           <Route
             path="/userorders"
             element={
-              <PrivateRoute>
-                <UserOrders />
-              </PrivateRoute>
+              <FeatureRoute
+                enabled={
+                  tenantFeatures.isOrderingEnabled &&
+                  tenantFeatures.isCustomerAccountsEnabled
+                }
+              >
+                <PrivateRoute>
+                  <UserOrders />
+                </PrivateRoute>
+              </FeatureRoute>
             }
           />
           <Route
@@ -289,21 +324,28 @@ function AppRoutes() {
           <Route
             path="/admin/orders"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <OrderList />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute enabled={tenantFeatures.isOrderingEnabled} fallbackTo="/admin">
+                <AdminRoute>
+                  <Dashboard>
+                    <OrderList />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
             path="/admin/users"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <Users />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute
+                enabled={tenantFeatures.isCustomerAccountsEnabled}
+                fallbackTo="/admin"
+              >
+                <AdminRoute>
+                  <Dashboard>
+                    <Users />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
@@ -361,21 +403,28 @@ function AppRoutes() {
           <Route
             path="/admin/print"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <PrintAdmin />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute enabled={tenantFeatures.isPrintingEnabled} fallbackTo="/admin">
+                <AdminRoute>
+                  <Dashboard>
+                    <PrintAdmin />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
             path="/admin/tickets"
             element={
-              <AdminRoute>
-                <Dashboard>
-                  <TicketsAdmin />
-                </Dashboard>
-              </AdminRoute>
+              <FeatureRoute
+                enabled={tenantFeatures.isOrderingEnabled && tenantFeatures.isPrintingEnabled}
+                fallbackTo="/admin"
+              >
+                <AdminRoute>
+                  <Dashboard>
+                    <TicketsAdmin />
+                  </Dashboard>
+                </AdminRoute>
+              </FeatureRoute>
             }
           />
           <Route
@@ -430,13 +479,15 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <LanguageProvider>
-          <SiteSettingsProvider>
-            <CartProvider>
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
-            </CartProvider>
-          </SiteSettingsProvider>
+          <TenantFeaturesProvider>
+            <SiteSettingsProvider>
+              <CartProvider>
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </CartProvider>
+            </SiteSettingsProvider>
+          </TenantFeaturesProvider>
         </LanguageProvider>
       </ThemeProvider>
     </AuthProvider>
