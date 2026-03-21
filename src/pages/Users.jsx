@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { deleteUser, getAllUsers, updateUserRole } from "../api/admin.api";
+import { deleteUser, getAllUsers } from "../api/admin.api";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { ActionIconButton, DeleteIcon } from "../components/ui/AdminActions";
@@ -25,8 +25,13 @@ export default function Users() {
 
     return users.filter((entry) => {
       const parsedName = splitPersonName(entry);
-      const fields = [entry.name, parsedName.firstName, parsedName.lastName, entry.email, entry.phone]
-        .map((value) => String(value || "").toLowerCase());
+      const fields = [
+        entry.name,
+        parsedName.firstName,
+        parsedName.lastName,
+        entry.email,
+        entry.phone,
+      ].map((value) => String(value || "").toLowerCase());
 
       return fields.some((value) => value.includes(normalizedQuery));
     });
@@ -41,7 +46,12 @@ export default function Users() {
     }
 
     if (!isTenantAdminPanelUser(user)) {
-      setMessage(tr("Accès refusé : administrateur uniquement", "Access denied: admin only"));
+      setMessage(
+        tr(
+          "Acces refuse : tenant admin uniquement",
+          "Access denied: tenant admin only"
+        )
+      );
       return;
     }
 
@@ -50,22 +60,18 @@ export default function Users() {
         const data = await getAllUsers(token);
         setUsers(Array.isArray(data) ? data : []);
       } catch (err) {
-        setMessage(err.response?.data?.error || tr("Erreur lors du chargement des utilisateurs", "Error while loading users"));
+        setMessage(
+          err.response?.data?.error ||
+            tr(
+              "Erreur lors du chargement des utilisateurs",
+              "Error while loading users"
+            )
+        );
       }
     }
 
     fetchUsers();
   }, [authLoading, token, user, navigate, tr]);
-
-  const handleRoleChange = async (userId, newRole) => {
-    try {
-      const updatedUser = await updateUserRole(token, userId, newRole);
-      setUsers((prev) => prev.map((entry) => (entry.id === userId ? updatedUser : entry)));
-      setMessage(tr("Rôle mis à jour avec succès.", "Role updated successfully."));
-    } catch (err) {
-      setMessage(err.response?.data?.error || tr("Erreur lors de la mise à jour du rôle", "Error while updating role"));
-    }
-  };
 
   const handleDelete = async (userId) => {
     try {
@@ -73,7 +79,10 @@ export default function Users() {
       setUsers((prev) => prev.filter((entry) => entry.id !== userId));
       setMessage(tr("Utilisateur supprime.", "User deleted."));
     } catch (err) {
-      setMessage(err.response?.data?.error || tr("Erreur lors de la suppression", "Error while deleting"));
+      setMessage(
+        err.response?.data?.error ||
+          tr("Erreur lors de la suppression", "Error while deleting")
+      );
     }
   };
 
@@ -130,7 +139,11 @@ export default function Users() {
     </div>
   );
 
-  if (authLoading) return <p>{tr("Chargement du contexte utilisateur...", "Loading user context...")}</p>;
+  if (authLoading) {
+    return (
+      <p>{tr("Chargement du contexte utilisateur...", "Loading user context...")}</p>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -139,10 +152,12 @@ export default function Users() {
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-saffron">
             {tr("Infos clients", "Customer details")}
           </p>
-          <h2 className="text-2xl font-bold text-white">{tr("Clients", "Customers")}</h2>
+          <h2 className="text-2xl font-bold text-white">
+            {tr("Clients", "Customers")}
+          </h2>
           <p className="mt-1 max-w-2xl text-sm text-stone-300">
             {tr(
-              "Recherche rapide par nom, prénom, numéro ou email pour retrouver un client sans perdre de temps.",
+              "Recherche rapide par nom, prenom, numero ou email pour retrouver un client sans perdre de temps.",
               "Quick search by last name, first name, phone number or email to find a customer fast."
             )}
           </p>
@@ -159,12 +174,17 @@ export default function Users() {
         </div>
       </div>
 
-      {message && (
-        <p className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-stone-200">{message}</p>
-      )}
+      {message ? (
+        <p className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-stone-200">
+          {message}
+        </p>
+      ) : null}
 
       <div className="grid gap-2 sm:max-w-xl">
-        <label htmlFor="users-search" className="text-xs font-semibold uppercase tracking-wide text-stone-300">
+        <label
+          htmlFor="users-search"
+          className="text-xs font-semibold uppercase tracking-wide text-stone-300"
+        >
           {tr("Recherche client", "Customer search")}
         </label>
         <input
@@ -173,7 +193,7 @@ export default function Users() {
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           placeholder={tr(
-            "Rechercher par nom, prénom, numéro ou email",
+            "Rechercher par nom, prenom, numero ou email",
             "Search by last name, first name, phone number or email"
           )}
         />
@@ -202,44 +222,52 @@ export default function Users() {
                 <div className="space-y-2.5">
                   <h3 className="text-base font-semibold text-white">{displayName}</h3>
 
-                  <div className="grid gap-2 md:grid-cols-[minmax(120px,0.72fr)_minmax(170px,0.95fr)_minmax(130px,0.62fr)_auto] md:items-start">
+                  <div className="grid gap-2 md:grid-cols-[minmax(120px,0.72fr)_minmax(170px,0.95fr)_minmax(220px,0.9fr)_auto] md:items-start">
                     <div className="max-w-[220px] rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
                       <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-                        {tr("Numéro", "Phone")}
+                        {tr("Numero", "Phone")}
                       </p>
-                      <p className="mt-0.5 text-[11px] text-stone-100">{entry.phone || "-"}</p>
+                      <p className="mt-0.5 text-[11px] text-stone-100">
+                        {entry.phone || "-"}
+                      </p>
                     </div>
 
                     <div className="max-w-[280px] rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
                       <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-stone-400">
                         {tr("Email", "Email")}
                       </p>
-                      <p className="mt-0.5 break-all text-[11px] text-stone-100">{entry.email || "-"}</p>
+                      <p className="mt-0.5 break-all text-[11px] text-stone-100">
+                        {entry.email || "-"}
+                      </p>
                     </div>
 
-                    <div className="max-w-[220px] rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
+                    <div className="max-w-[260px] rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-                          {tr("Role", "Role")}
+                          {tr("Verification", "Verification")}
                         </p>
-                        <p className="text-[11px] font-semibold text-white">{entry.role}</p>
-                        {entry.role === "CLIENT" ? (
-                          <button
-                            type="button"
-                            onClick={() => handleRoleChange(entry.id, "ADMIN")}
-                            className="text-[10px] font-medium text-stone-300 transition hover:text-white"
-                          >
-                            {tr("Promouvoir admin", "Promote to admin")}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleRoleChange(entry.id, "CLIENT")}
-                            className="text-[10px] font-medium text-stone-300 transition hover:text-white"
-                          >
-                            {tr("Retrograder client", "Demote to client")}
-                          </button>
-                        )}
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                            entry.emailVerified
+                              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                              : "border-amber-500/40 bg-amber-500/10 text-amber-200"
+                          }`}
+                        >
+                          {entry.emailVerified
+                            ? tr("Email verifie", "Email verified")
+                            : tr("Email non verifie", "Email unverified")}
+                        </span>
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                            entry.phoneVerified
+                              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                              : "border-stone-500/40 bg-stone-500/10 text-stone-200"
+                          }`}
+                        >
+                          {entry.phoneVerified
+                            ? tr("Telephone verifie", "Phone verified")
+                            : tr("Telephone non verifie", "Phone unverified")}
+                        </span>
                       </div>
                     </div>
 

@@ -5,15 +5,6 @@ export const getAllUsers = async (token) => {
   return response.data;
 };
 
-export const updateUserRole = async (token, userId, role) => {
-  const response = await api.put(
-    `/users/${userId}/role`,
-    { role },
-    authConfig(token)
-  );
-  return response.data;
-};
-
 export const deleteUser = async (token, userId) => {
   const response = await api.delete(`/users/${userId}`, authConfig(token));
   return response.data;
