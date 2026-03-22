@@ -8,7 +8,6 @@ import {
   getPrintOverviewAdmin,
   getPrintPrintersAdmin,
   rotatePrintAgentTokenAdmin,
-  runPrintSchedulerTickAdmin,
   upsertPrintAgentAdmin,
   upsertPrintPrinterAdmin,
 } from "../api/admin.api";
@@ -125,7 +124,6 @@ export default function PrintAdmin() {
   const [locations, setLocations] = useState([]);
 
   const [loading, setLoading] = useState(false);
-  const [runningTick, setRunningTick] = useState(false);
   const [busyByKey, setBusyByKey] = useState({});
   const [message, setMessage] = useState("");
   const [showTruckForm, setShowTruckForm] = useState(false);
@@ -385,24 +383,6 @@ export default function PrintAdmin() {
     }
   };
 
-  const handleTick = async () => {
-    setRunningTick(true);
-    try {
-      const result = await runPrintSchedulerTickAdmin(token);
-      setMessage(
-        tr(
-          `Tick OK: ${result.pending_to_ready || 0} pending->ready, ${result.retry_to_ready || 0} retry->ready`,
-          `Tick OK: ${result.pending_to_ready || 0} pending->ready, ${result.retry_to_ready || 0} retry->ready`
-        )
-      );
-      await refreshAll();
-    } catch (err) {
-      setMessage(err?.response?.data?.error || tr("Echec du tick scheduler", "Scheduler tick failed"));
-    } finally {
-      setRunningTick(false);
-    }
-  };
-
   if (!token || !isTenantAdminPanelUser(user)) {
     return <p>{tr("Accès refusé : administrateur uniquement", "Access denied: admin only")}</p>;
   }
@@ -418,14 +398,6 @@ export default function PrintAdmin() {
             className="rounded-lg border border-white/25 bg-white/5 px-3 py-2 text-xs font-semibold text-stone-100 transition hover:bg-white/15"
           >
             {loading ? tr("Actualisation...", "Refreshing...") : tr("Actualiser", "Refresh")}
-          </button>
-          <button
-            type="button"
-            onClick={handleTick}
-            disabled={runningTick}
-            className="rounded-lg border border-amber-300/40 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {runningTick ? tr("Tick en cours...", "Tick running...") : tr("Forcer tick scheduler", "Force scheduler tick")}
           </button>
         </div>
       </div>

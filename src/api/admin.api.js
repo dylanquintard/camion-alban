@@ -184,7 +184,3 @@ export const reprintJobAdmin = async (token, jobId, payload = {}) => {
   return response.data;
 };
 
-export const runPrintSchedulerTickAdmin = async (token) => {
-  const response = await api.post("/print/admin/scheduler/tick", {}, authConfig(token));
-  return response.data;
-};
